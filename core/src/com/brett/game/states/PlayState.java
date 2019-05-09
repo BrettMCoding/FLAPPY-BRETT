@@ -15,6 +15,7 @@ public class PlayState extends State {
     private static final int GROUND_Y_OFFSET = -50;
 
     private Bird bird;
+    private Texture gameOverText;
     private Texture bg;
     private Texture ground;
     private Vector2 groundPos1, groundPos2;
@@ -22,9 +23,10 @@ public class PlayState extends State {
     private Array<Tube> tubes;
 
 
-    protected PlayState(GameStateManager gsm) {
+    public PlayState(GameStateManager gsm) {
         super(gsm);
         bird = new Bird(50, 240);
+        gameOverText = new Texture("gameover.png");
         bg = new Texture("bg.png");
         ground = new Texture("ground.png");
         groundPos1 = new Vector2(cam.position.x - cam.viewportWidth / 2, GROUND_Y_OFFSET);
@@ -62,12 +64,12 @@ public class PlayState extends State {
             }
 
             if(tube.collides(bird.getBounds())) {
-                gsm.set(new PlayState(gsm));
+                gameOver();
             }
         }
 
         if(bird.getPosition().y <= ground.getHeight() + GROUND_Y_OFFSET) {
-            gsm.set(new PlayState(gsm));
+            gameOver();
         }
         cam.update();
     }
@@ -84,11 +86,17 @@ public class PlayState extends State {
         }
         sb.draw(ground, groundPos1.x, groundPos1.y);
         sb.draw(ground, groundPos2.x, groundPos2.y);
+
+        if (gsm.getGamePaused()) {
+            sb.draw(gameOverText, cam.position.x - gameOverText.getWidth() / 2, cam.position.y);
+        }
+
         sb.end();
     }
 
     @Override
     public void dispose() {
+        gameOverText.dispose();
         bg.dispose();
         bird.dispose();
         ground.dispose();
@@ -105,5 +113,9 @@ public class PlayState extends State {
         if(cam.position.x - (cam.viewportWidth / 2) > groundPos2.x + ground.getWidth()) {
             groundPos2.add(ground.getWidth() * 2, 0);
         }
+    }
+
+    private void gameOver() {
+        gsm.setPause(true);
     }
 }

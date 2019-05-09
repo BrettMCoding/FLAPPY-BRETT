@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.brett.game.states.GameStateManager;
 import com.brett.game.states.MenuState;
+import com.brett.game.states.PlayState;
 
 public class FlappyDemo extends ApplicationAdapter {
 	public static final int WIDTH = 480;
@@ -33,9 +34,18 @@ public class FlappyDemo extends ApplicationAdapter {
 
 	@Override
 	public void render () {
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		gsm.update(Gdx.graphics.getDeltaTime());
-		gsm.render(batch);
+		if (gsm.getCurrentState() instanceof PlayState && gsm.getGamePaused()) {
+
+			if(Gdx.input.justTouched()) {
+				//unpause game on touch
+				gsm.setPause(false);
+				gsm.set(new PlayState(gsm));
+			}
+		} else {
+			Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+			gsm.update(Gdx.graphics.getDeltaTime());
+			gsm.render(batch);
+		}
 	}
 
 	
