@@ -14,7 +14,6 @@ public class Bird {
     private Vector3 position;
     private Vector3 velocity;
     private Rectangle bounds;
-    private Animation birdAnimation;
     private Sound flap;
 
     private Texture texture;
@@ -24,15 +23,13 @@ public class Bird {
         velocity = new Vector3(0,0,0);
 
         // EXERCISE. Pass texture into animation INSTEAD OF textureRegion and do breakdown INSIDE anim class
-        texture = new Texture("birdanimation.png");
-        birdAnimation = new Animation(new TextureRegion(texture), 3, 0.5f);
+        texture = new Texture("brettfacesm.png");
         bounds = new Rectangle(x, y, texture.getWidth() / 3, texture.getHeight());
         flap = Gdx.audio.newSound(Gdx.files.internal("sfx_wing.ogg"));
 
     }
 
     public void update(float dt) {
-        birdAnimation.update(dt);
         if (position.y > 0) {
             velocity.add(0, GRAVITY, 0);
         }
@@ -53,8 +50,8 @@ public class Bird {
         return position;
     }
 
-    public TextureRegion getTexture() {
-        return birdAnimation.getFrame();
+    public Texture getTexture() {
+        return texture;
     }
 
     public void jump() {

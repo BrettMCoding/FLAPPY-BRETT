@@ -9,11 +9,11 @@ import java.util.Random;
 public class Tube {
     public static final int TUBE_WIDTH = 52;
 
-    private static final int FLUCTUATION = 115;
+    private static final int FLUCTUATION = 135;
     private static final int TUBE_GAP = 100;
     private static final int LOWEST_OPENING = 120;
 
-
+    // pls install
     private Texture topTube, bottomTube;
     private Vector2 posTopTube, posBotTube;
     private Rectangle boundsTop, boundsBot;
@@ -24,7 +24,7 @@ public class Tube {
         bottomTube = new Texture("bottomtube.png");
         rand = new Random();
 
-        posTopTube = new Vector2(x, (rand.nextInt(FLUCTUATION) + TUBE_GAP + LOWEST_OPENING) + 15);
+        posTopTube = new Vector2(x, (rand.nextInt(FLUCTUATION) + TUBE_GAP + LOWEST_OPENING));
         posBotTube = new Vector2(x, posTopTube.y - TUBE_GAP - bottomTube.getHeight());
 
         boundsTop = new Rectangle(posTopTube.x, posTopTube.y, topTube.getWidth(), topTube.getHeight());
@@ -49,7 +49,7 @@ public class Tube {
     }
 
     public void reposition(float x) {
-        posTopTube.set(x, rand.nextInt(FLUCTUATION + TUBE_GAP + LOWEST_OPENING));
+        posTopTube.set(x, (rand.nextInt(FLUCTUATION) + TUBE_GAP + LOWEST_OPENING));
         posBotTube.set(x, posTopTube.y - TUBE_GAP - bottomTube.getHeight());
 
         boundsTop.setPosition(posTopTube.x, posTopTube.y);
