@@ -3,7 +3,6 @@ package com.brett.game.sprites;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 
@@ -25,7 +24,7 @@ public class Bird {
         // EXERCISE. Pass texture into animation INSTEAD OF textureRegion and do breakdown INSIDE anim class
         texture = new Texture("brettfacesm.png");
         bounds = new Rectangle(x, y, texture.getWidth() / 3, texture.getHeight());
-        flap = Gdx.audio.newSound(Gdx.files.internal("sfx_wing.ogg"));
+        flap = Gdx.audio.newSound(Gdx.files.internal("flap.mp3"));
 
     }
 
@@ -56,7 +55,7 @@ public class Bird {
 
     public void jump() {
         velocity.y = 350;
-        flap.play(0.3f, 2.0f, 0);
+        flap.play(1f);
     }
 
     public Rectangle getBounds() {

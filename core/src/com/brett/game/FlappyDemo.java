@@ -2,9 +2,9 @@ package com.brett.game;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.brett.game.states.GameStateManager;
 import com.brett.game.states.MenuState;
@@ -14,10 +14,11 @@ public class FlappyDemo extends ApplicationAdapter {
 	public static final int WIDTH = 480;
 	public static final int HEIGHT = 800;
 
-	public static final String TITLE = "Flappy Bird";
+	public static final String TITLE = "Flappy Brett";
 	private GameStateManager gsm;
 	private SpriteBatch batch;
 
+	private Preferences prefs;
 	private Music music;
 	
 	@Override
@@ -29,18 +30,24 @@ public class FlappyDemo extends ApplicationAdapter {
 		music.setVolume(0.1f);
 		music.play();
 		Gdx.gl.glClearColor(1, 0, 0, 1);
+		prefs = Gdx.app.getPreferences("fbrprefs");
+		prefs.putBoolean("music", true);
+		prefs.flush();
+
 		gsm.push(new MenuState(gsm));
 	}
 
 	@Override
 	public void render () {
-		if (gsm.getCurrentState() instanceof PlayState && gsm.getGamePaused()) {
+		if (prefs.getBoolean("music")) {
+			music.setVolume(0.1f);
+		} else {
+			music.setVolume(0.0f);
+		}
 
-			if(Gdx.input.justTouched()) {
-				//unpause game on touch
-				gsm.setPause(false);
-				gsm.set(new PlayState(gsm));
-			}
+		if (gsm.getCurrentState() instanceof PlayState && gsm.getGamePaused()) {
+			Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+			gsm.render(batch);
 		} else {
 			Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 			gsm.update(Gdx.graphics.getDeltaTime());
