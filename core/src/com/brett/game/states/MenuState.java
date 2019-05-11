@@ -96,9 +96,12 @@ public class MenuState extends State {
     // change off/on based on boolean
     private void drawMusicButton(SpriteBatch sb) {
         if (musicOn) {
-            sb.draw(musicOffBtn, cam.position.x - (float)musicOnBtn.getWidth() / 2, cam.position.y - 160);
+            // SPIN
+            brettfaceSprite.rotate(-21f);
+
+            sb.draw(musicOffBtn, cam.position.x - (float)musicOnBtn.getWidth() / 2, cam.position.y - 190);
         } else {
-            sb.draw(musicOnBtn, cam.position.x - (float)musicOnBtn.getWidth() / 2, cam.position.y - 160);
+            sb.draw(musicOnBtn, cam.position.x - (float)musicOnBtn.getWidth() / 2, cam.position.y - 190);
         }
     }
 
