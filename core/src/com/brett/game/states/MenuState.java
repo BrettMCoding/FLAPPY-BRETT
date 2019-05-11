@@ -7,7 +7,7 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
-import com.brett.game.FlappyDemo;
+import com.brett.game.FlappyBrett;
 
 public class MenuState extends State {
     private Texture background;
@@ -24,16 +24,20 @@ public class MenuState extends State {
 
     public MenuState(GameStateManager gsm) {
         super(gsm);
-        cam.setToOrtho(false, FlappyDemo.WIDTH / 2, FlappyDemo.HEIGHT / 2);
+        cam.setToOrtho(false, (float)FlappyBrett.WIDTH / 2, (float)FlappyBrett.HEIGHT / 2);
+
         background = new Texture("bg.png");
         title = new Texture("title.png");
-        brettface = new Texture("brettface.png");
-        brettfaceSprite = new Sprite(brettface);
-        brettfaceSprite.setPosition(cam.position.x - brettface.getWidth() / 2, cam.position.y - 125);
         playBtn = new Texture("playbtn.png");
         musicOnBtn = new Texture("musiconbtn.png");
         musicOffBtn = new Texture("musicoffbtn.png");
-        musicBtnBounds = new Rectangle(cam.position.x - playBtn.getWidth() / 2, cam.position.y - 190, musicOnBtn.getWidth(), musicOnBtn.getHeight());
+        brettface = new Texture("brettface.png");
+
+        brettfaceSprite = new Sprite(brettface);
+        brettfaceSprite.setPosition(cam.position.x - (float)brettface.getWidth() / 2, cam.position.y - 125);
+
+        musicBtnBounds = new Rectangle(cam.position.x - (float)playBtn.getWidth() / 2, cam.position.y - 190, musicOnBtn.getWidth(), musicOnBtn.getHeight());
+
         prefs = Gdx.app.getPreferences("fbrprefs");
         musicOn = prefs.getBoolean("music");
     }
@@ -41,11 +45,15 @@ public class MenuState extends State {
     @Override
     public void handleInput() {
         if(Gdx.input.justTouched()) {
+
+            // create a Vector3 and check if we pressed in the Music Button's Bounds
             Vector3 tmp=new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
             cam.unproject(tmp);
-            // texture x is the x position of the texture
-            // texture y is the y position of the texture
             if(musicBtnBounds.contains(tmp.x,tmp.y)) {
+
+                // if so, change the preference, and the local boolean
+                // using a local boolean because (I assume) checking it every frame
+                // render is less resource intensive
                 if (!prefs.getBoolean("music")) {
                     musicOn = true;
                     prefs.putBoolean("music", true);
@@ -55,6 +63,7 @@ public class MenuState extends State {
                     prefs.putBoolean("music", false);
                     prefs.flush();
                 }
+            // if the screen is clicked anywhere else, start the game
             } else {
                 gsm.set(new PlayState(gsm));
             }
@@ -71,22 +80,26 @@ public class MenuState extends State {
     public void render(SpriteBatch sb) {
         sb.setProjectionMatrix(cam.combined);
         sb.begin();
+
         sb.draw(background, 0,0);
-        sb.draw(title, cam.position.x - title.getWidth() / 2, cam.position.y + 40);
+
+        sb.draw(title, cam.position.x - (float)title.getWidth() / 2, cam.position.y + 40);
         brettfaceSprite.draw(sb);
 
-        sb.draw(playBtn, cam.position.x - playBtn.getWidth() / 2, cam.position.y - 50);
+        sb.draw(playBtn, cam.position.x - (float)playBtn.getWidth() / 2, cam.position.y - 50);
 
-        if (musicOn) {
-
-            brettfaceSprite.rotate(-21f);
-
-            sb.draw(musicOffBtn, cam.position.x - playBtn.getWidth() / 2, cam.position.y - 190);
-            } else {
-            sb.draw(musicOnBtn, cam.position.x - playBtn.getWidth() / 2, cam.position.y - 190);
-        }
+        drawMusicButton(sb);
 
         sb.end();
+    }
+
+    // change off/on based on boolean
+    private void drawMusicButton(SpriteBatch sb) {
+        if (musicOn) {
+            sb.draw(musicOffBtn, cam.position.x - (float)musicOnBtn.getWidth() / 2, cam.position.y - 160);
+        } else {
+            sb.draw(musicOnBtn, cam.position.x - (float)musicOnBtn.getWidth() / 2, cam.position.y - 160);
+        }
     }
 
     @Override

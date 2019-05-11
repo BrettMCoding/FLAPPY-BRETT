@@ -13,7 +13,6 @@ public class Tube {
     private static final int TUBE_GAP = 100;
     private static final int LOWEST_OPENING = 120;
 
-    // pls install
     private Texture topTube, bottomTube;
     private Vector2 posTopTube, posBotTube;
     private Rectangle boundsTop, boundsBot;

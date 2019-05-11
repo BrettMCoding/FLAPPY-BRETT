@@ -13,8 +13,8 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
-import com.brett.game.FlappyDemo;
-import com.brett.game.sprites.Bird;
+import com.brett.game.FlappyBrett;
+import com.brett.game.sprites.Brett;
 import com.brett.game.sprites.Tube;
 
 public class PlayState extends State {
@@ -22,7 +22,7 @@ public class PlayState extends State {
     private static final int TUBE_COUNT = 4;
     private static final int GROUND_Y_OFFSET = -50;
 
-    private Bird bird;
+    private Brett brett;
     private Texture gameOverText;
     private Texture highScoreText;
     private Texture bg;
@@ -31,11 +31,10 @@ public class PlayState extends State {
 
     private Texture musicOffBtn;
     private Texture musicOnBtn;
-    private Rectangle musicBtnBounds;
 
     private int score;
     private int highScore;
-    private String scoreString;
+
     private BitmapFont scoreFont;
     private BitmapFont highscoreFont;
     private GlyphLayout layout;
@@ -48,9 +47,9 @@ public class PlayState extends State {
     private Array<Tube> tubes;
 
 
-    public PlayState(GameStateManager gsm) {
+    PlayState(GameStateManager gsm) {
         super(gsm);
-        bird = new Bird(50, 240);
+        brett = new Brett(50, 240);
         gameOverText = new Texture("gameover.png");
         highScoreText = new Texture("highscoretext.png");
 
@@ -63,32 +62,42 @@ public class PlayState extends State {
         groundPos2 = new Vector2((cam.position.x - cam.viewportWidth / 2) + ground.getWidth(), GROUND_Y_OFFSET);
 
         score = 0;
-        scoreString = "0";
         scoreFont = new BitmapFont();
 
+        // Create bitmap font generator, and a corresponding parameter object
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator((Gdx.files.internal("pressstart2p.ttf")));
         FreeTypeFontGenerator.FreeTypeFontParameter param = new FreeTypeFontGenerator.FreeTypeFontParameter();
+
+        // set parameters
         param.size = 22;
         param.borderColor = Color.BLACK;
         param.borderWidth = 2;
 
-
+        // generate the font
         scoreFont = generator.generateFont(param);
+        // this is necessary to prevent a jittering bug, due to the default x, y
+        // getting casted to an int instead of a float
         scoreFont.setUseIntegerPositions(false);
 
+        // set new parameters
         param.size = 12;
         param.borderWidth = 1;
 
+        // generate new font
         highscoreFont = generator.generateFont(param);
         highscoreFont.setUseIntegerPositions(false);
 
+        // GlyphLayout makes it possible to obtain text width/height
         layout = new GlyphLayout();
         layout.setText(highscoreFont, highScore + "");
+
+        // delete the font generator immediately
         generator.dispose();
 
         prefs = Gdx.app.getPreferences("fbrprefs");
         musicOn = prefs.getBoolean("music");
 
+        // set the high score from prefs
         if (prefs.getInteger("highScore") >= 0) {
             highScore = prefs.getInteger("highScore");
         } else {
@@ -97,8 +106,9 @@ public class PlayState extends State {
 
         deathsound = Gdx.audio.newSound(Gdx.files.internal("deathsound.mp3"));
 
-        cam.setToOrtho(false, (float)FlappyDemo.WIDTH / 2, (float)FlappyDemo.HEIGHT / 2);
+        cam.setToOrtho(false, (float) FlappyBrett.WIDTH / 2, (float) FlappyBrett.HEIGHT / 2);
 
+        // create the tubes
         tubes = new Array<Tube>();
 
         for (int i = 1; i <= TUBE_COUNT; i++) {
@@ -109,7 +119,7 @@ public class PlayState extends State {
     @Override
     protected void handleInput() {
         if(Gdx.input.justTouched()) {
-            bird.jump();
+            brett.jump();
         }
         updateGround();
     }
@@ -117,85 +127,67 @@ public class PlayState extends State {
     @Override
     public void update(float dt) {
         handleInput();
-        bird.update(dt);
-        cam.position.x = bird.getPosition().x + 80;
+        brett.update(dt);
+        cam.position.x = brett.getPosition().x + 80;
 
         for(int i = 0; i < tubes.size; i++) {
-            Tube tube = tubes.get(i);
 
+            Tube tube = tubes.get(i);
             // move tube
             if(cam.position.x - (cam.viewportWidth / 2) > tube.getPosTopTube().x + tube.getTopTube().getWidth()) {
                 tube.reposition(tube.getPosTopTube().x + ((Tube.TUBE_WIDTH + TUBE_SPACING) * TUBE_COUNT));
                 increaseScore();
             }
 
-
-            if(tube.collides(bird.getBounds())) {
+            if(tube.collides(brett.getBounds())) {
                 gameOver();
             }
         }
 
-        if(bird.getPosition().y <= ground.getHeight() + GROUND_Y_OFFSET) {
+        if(brett.getPosition().y <= ground.getHeight() + GROUND_Y_OFFSET) {
             gameOver();
         }
 
-        if(bird.getPosition().y > cam.viewportHeight) {
+        if(brett.getPosition().y > cam.viewportHeight) {
             gameOver();
         }
+
         cam.update();
     }
 
     @Override
     public void render(SpriteBatch sb) {
+
         sb.setProjectionMatrix(cam.combined);
+
         sb.begin();
         sb.draw(bg, cam.position.x - (cam.viewportWidth / 2), 0);
-        sb.draw(bird.getTexture(), bird.getPosition().x, bird.getPosition().y);
+        sb.draw(brett.getTexture(), brett.getPosition().x, brett.getPosition().y);
+
         for (Tube tube : tubes) {
             sb.draw(tube.getTopTube(), tube.getPosTopTube().x, tube.getPosTopTube().y);
             sb.draw(tube.getBottomTube(), tube.getPosBotTube().x, tube.getPosBotTube().y);
         }
+
         sb.draw(ground, groundPos1.x, groundPos1.y);
         sb.draw(ground, groundPos2.x, groundPos2.y);
 
         scoreFont.setColor(1.0f, 1.0f, 1.0f, 1.0f);
-        scoreFont.draw(sb, scoreString, cam.position.x - 80, cam.position.y / 7);
+        scoreFont.draw(sb, score+"", cam.position.x - 80, cam.position.y / 7);
 
-        sb.draw(highScoreText, (cam.position.x + 75) - highScoreText.getWidth() / 2, (cam.position.y / 7));
+        sb.draw(highScoreText, (cam.position.x + 75) - (float)highScoreText.getWidth() / 2, (cam.position.y / 7));
 
         highscoreFont.setColor(1.0f, 1.0f, 1.0f, 1.0f);
         highscoreFont.draw(sb, highScore + "", (cam.position.x + 75) - layout.width / 2, (cam.position.y / 7) - 12);
 
         if (gsm.getGamePaused()) {
-            sb.draw(gameOverText, cam.position.x - gameOverText.getWidth() / 2, cam.position.y);
-            if (musicOn) {
-                sb.draw(musicOffBtn, cam.position.x - musicOnBtn.getWidth() / 2, cam.position.y - 160);
-            } else {
-                sb.draw(musicOnBtn, cam.position.x - musicOnBtn.getWidth() / 2, cam.position.y - 160);
-            }
+
+            sb.draw(gameOverText, cam.position.x - (float)gameOverText.getWidth() / 2, cam.position.y);
+
+            drawMusicButton(sb);
 
             if(Gdx.input.justTouched()) {
-                musicBtnBounds = new Rectangle(cam.position.x - musicOnBtn.getWidth() / 2, cam.position.y - 160, musicOnBtn.getWidth(), musicOnBtn.getHeight());
-                Vector3 tmp = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
-                cam.unproject(tmp);
-                // texture x is the x position of the texture
-                // texture y is the y position of the texture
-
-                if (musicBtnBounds.contains(tmp.x, tmp.y)) {
-                    if (prefs.getBoolean("music")) {
-                        musicOn = false;
-                        prefs.putBoolean("music", false);
-                        prefs.flush();
-                    } else {
-                        musicOn = true;
-                        prefs.putBoolean("music", true);
-                        prefs.flush();
-                    }
-                } else {
-                    //unpause game on touch
-                    gsm.setPause(false);
-                    gsm.set(new PlayState(gsm));
-                }
+                gameOverButtonOptions();
             }
         }
 
@@ -209,7 +201,7 @@ public class PlayState extends State {
         deathsound.dispose();
         scoreFont.dispose();
         bg.dispose();
-        bird.dispose();
+        brett.dispose();
         ground.dispose();
         musicOnBtn.dispose();
         musicOffBtn.dispose();
@@ -229,7 +221,6 @@ public class PlayState extends State {
 
     private void increaseScore() {
         score++;
-        scoreString = score + "";
 
         if (score > highScore) {
             prefs.putInteger("highScore", score);
@@ -240,5 +231,39 @@ public class PlayState extends State {
     private void gameOver() {
         deathsound.play(0.2f);
         gsm.setPause(true);
+    }
+
+    private void gameOverButtonOptions() {
+        // generate music button bounds
+        Rectangle musicBtnBounds = new Rectangle(cam.position.x - (float)musicOnBtn.getWidth() / 2, cam.position.y - 160, musicOnBtn.getWidth(), musicOnBtn.getHeight());
+        Vector3 tmp = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
+        cam.unproject(tmp);
+
+        // Check if music button is pressed. If not, reset
+        if (musicBtnBounds.contains(tmp.x, tmp.y)) {
+            if (prefs.getBoolean("music")) {
+                musicOn = false;
+                prefs.putBoolean("music", false);
+                prefs.flush();
+            } else {
+                musicOn = true;
+                prefs.putBoolean("music", true);
+                prefs.flush();
+            }
+
+        } else {
+            //unpause game on touch
+            gsm.setPause(false);
+            gsm.set(new PlayState(gsm));
+        }
+    }
+
+    // change off/on based on boolean
+    private void drawMusicButton(SpriteBatch sb) {
+        if (musicOn) {
+            sb.draw(musicOffBtn, cam.position.x - (float)musicOnBtn.getWidth() / 2, cam.position.y - 160);
+        } else {
+            sb.draw(musicOnBtn, cam.position.x - (float)musicOnBtn.getWidth() / 2, cam.position.y - 160);
+        }
     }
 }
